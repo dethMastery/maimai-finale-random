@@ -83,7 +83,7 @@ const App = () => {
       );
     } else {
       return (
-        <div className="w-full min-h-screen bg-jet text-whitesmoke flex justify-center items-center">
+        <div className="w-full min-h-screen bg-jet text-whitesmoke flex flex-col justify-center items-center gap-4">
           <div className="w-[22rem] p-4 bg-whitesmoke text-jet rounded-xl text-center">
             <h1 className="text-2xl font-bold">
               {apiData[random]["Music(Eng)"] != "-"
@@ -130,6 +130,13 @@ const App = () => {
               </div>
             </div>
           </div>
+
+          <button
+            className="bg-living-coral p-4 rounded-xl text-xl hover:opacity-60 hover:cursor-pointer"
+            onClick={() => randomFunc()}
+          >
+            Random!
+          </button>
         </div>
       );
     }
