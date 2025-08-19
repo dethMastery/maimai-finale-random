@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { usePapaParse } from "react-papaparse";
+
+import { typeList, typeTranslated } from "./modules/list";
 import type { dataInterface } from "./modules/interface";
 
 const App = () => {
   const { readRemoteFile } = usePapaParse();
 
   const [apiData, setAPIData] = useState<dataInterface[] | null>(null);
-  const [random, setRandom] = useState<number>(-1);
+
+  const [type, setType] = useState<string | null>(null);
+  const [newType, setNewType] = useState<string | null>(null);
+  const [showData, setShowData] = useState<dataInterface | null>(null);
 
   const csvHandler = () => {
     readRemoteFile("/api.csv", {
@@ -54,25 +59,132 @@ const App = () => {
     });
   };
 
+  const typeHandler = () => {
+    if (type === null && newType !== type) {
+      setType(newType);
+    } else {
+      if (type !== null && newType !== type) {
+        setType(newType);
+      }
+    }
+  };
+
   const randomFunc = () => {
     if (apiData !== null) {
-      let randomString = Math.floor(Math.random() * apiData.length);
+      typeHandler();
 
-      setRandom(randomString);
+      if (newType !== null && newType !== "" && newType !== "none") {
+        // Filtering Data
+        let filteredData = apiData.filter((items) => {
+          return items.Category === newType;
+        });
+
+        let randomString = Math.floor(Math.random() * filteredData.length);
+
+        setShowData(filteredData[randomString]);
+      } else {
+        let randomString = Math.floor(Math.random() * apiData.length);
+
+        setShowData(apiData[randomString]);
+      }
     }
   };
 
   useEffect(() => {
-    if (random < 0) {
+    if (showData === null) {
       csvHandler();
-    } else {
     }
-  }, [random]);
+  }, [showData]);
 
   if (apiData != null) {
-    if (random < 0) {
+    if (showData != null) {
       return (
-        <div className="w-full min-h-screen bg-jet text-whitesmoke flex justify-center items-center">
+        <div className="w-full min-h-screen bg-jet text-whitesmoke flex flex-col justify-center items-center gap-4">
+          <div className="w-[22rem] p-4 bg-whitesmoke text-jet rounded-xl text-center">
+            <h1 className="text-2xl font-bold w-full">
+              {showData["Music(Eng)"] != "-"
+                ? showData["Music(Eng)"]
+                : showData["Music(JPN)"]}
+            </h1>
+            <h3 className="text-lg opacity-80 w-full">
+              {showData["Artist(Eng)"] != "-"
+                ? showData["Artist(Eng)"]
+                : showData["Artist(JPN)"]}
+            </h3>
+
+            <br />
+
+            <div className="w-full flex flex-row gap-2 justify-center items-center">
+              <p className="text-lg">
+                {typeTranslated[typeList.indexOf(showData.Category)]}
+              </p>
+              {type !== null ? (
+                type === showData.Category ? (
+                  <div className="bg-amber-300 py-2 px-4 rounded-full border-jet border-solid border-2">
+                    L
+                  </div>
+                ) : (
+                  ""
+                )
+              ) : (
+                ""
+              )}
+            </div>
+
+            <br />
+
+            {/* Diff */}
+            <div className="w-full flex flex-row justify-around">
+              <div>
+                <p>EZ</p>
+                <p>{showData.Easy}</p>
+              </div>
+              <div>
+                <p>BC</p>
+                <p>{showData.Basic}</p>
+              </div>
+              <div>
+                <p>AD</p>
+                <p>{showData.Advanced}</p>
+              </div>
+              <div>
+                <p>EX</p>
+                <p>{showData.Expert}</p>
+              </div>
+              <div>
+                <p>MT</p>
+                <p>{showData.Master}</p>
+              </div>
+              <div>
+                <p>RE</p>
+                <p>{showData["Re:Master"]}</p>
+              </div>
+            </div>
+          </div>
+
+          <select
+            name="type"
+            id="type"
+            className="bg-whitesmoke text-jet text-center text-xl px-4 py-2 rounded-xl"
+            onChange={(e) => setNewType(String(e.target.value))}
+            value={
+              newType != null && newType != ""
+                ? newType
+                : type !== null
+                ? type
+                : ""
+            }
+          >
+            <option value="none">None</option>
+            {typeList.map((item, i) => {
+              return (
+                <option value={item} key={i}>
+                  {typeTranslated[i]}
+                </option>
+              );
+            })}
+          </select>
+
           <button
             className="bg-living-coral p-4 rounded-xl text-xl hover:opacity-60 hover:cursor-pointer"
             onClick={() => randomFunc()}
@@ -84,53 +196,28 @@ const App = () => {
     } else {
       return (
         <div className="w-full min-h-screen bg-jet text-whitesmoke flex flex-col justify-center items-center gap-4">
-          <div className="w-[22rem] p-4 bg-whitesmoke text-jet rounded-xl text-center">
-            <h1 className="text-2xl font-bold">
-              {apiData[random]["Music(Eng)"] != "-"
-                ? apiData[random]["Music(Eng)"]
-                : apiData[random]["Music(JPN)"]}
-            </h1>
-            <h3 className="text-lg opacity-80">
-              {apiData[random]["Artist(Eng)"] != "-"
-                ? apiData[random]["Artist(Eng)"]
-                : apiData[random]["Artist(JPN)"]}
-            </h3>
-
-            <br />
-
-            <p>{apiData[random].Category}</p>
-
-            <br />
-
-            {/* Diff */}
-            <div className="w-full flex flex-row justify-around">
-              <div>
-                <p>EZ</p>
-                <p>{apiData[random].Easy}</p>
-              </div>
-              <div>
-                <p>BC</p>
-                <p>{apiData[random].Basic}</p>
-              </div>
-              <div>
-                <p>AD</p>
-                <p>{apiData[random].Advanced}</p>
-              </div>
-              <div>
-                <p>EX</p>
-                <p>{apiData[random].Expert}</p>
-              </div>
-              <div>
-                <p>MT</p>
-                <p>{apiData[random].Master}</p>
-              </div>
-              <div>
-                <p>RE</p>
-                <p>{apiData[random]["Re:Master"]}</p>
-              </div>
-            </div>
-          </div>
-
+          <select
+            name="type"
+            id="type"
+            className="bg-whitesmoke text-jet text-center text-xl px-4 py-2 rounded-xl"
+            onChange={(e) => setNewType(String(e.target.value))}
+            value={
+              newType != null && newType != ""
+                ? newType
+                : type !== null
+                ? type
+                : ""
+            }
+          >
+            <option value="none">None</option>
+            {typeList.map((item, i) => {
+              return (
+                <option value={item} key={i}>
+                  {typeTranslated[i]}
+                </option>
+              );
+            })}
+          </select>
           <button
             className="bg-living-coral p-4 rounded-xl text-xl hover:opacity-60 hover:cursor-pointer"
             onClick={() => randomFunc()}
